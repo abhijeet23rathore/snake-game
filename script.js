@@ -4,6 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreElement = document.getElementById('score');
     const gameOverElement = document.getElementById('gameOver');
 
+    const upBtn = document.getElementById('upBtn');
+    const downBtn = document.getElementById('downBtn');
+    const leftBtn = document.getElementById('leftBtn');
+    const rightBtn = document.getElementById('rightBtn');
+
     const gridSize = 20;
     const canvasSize = canvas.width;
     const tileCount = canvasSize / gridSize;
@@ -145,26 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function handleCanvasTap(event) {
-        const rect = canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-
-        const dx = x - centerX;
-        const dy = y - centerY;
-
-        if (Math.abs(dx) > Math.abs(dy)) {
-            // Horizontal tap is stronger
-            handleDirectionChange(dx > 0 ? 'right' : 'left');
-        } else {
-            // Vertical tap is stronger
-            handleDirectionChange(dy > 0 ? 'down' : 'up');
-        }
-    }
-
     document.addEventListener('keydown', e => {
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             handleDirectionChange(e.key);
@@ -173,7 +158,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    canvas.addEventListener('click', handleCanvasTap);
+    upBtn.addEventListener('click', () => handleDirectionChange('up'));
+    downBtn.addEventListener('click', () => handleDirectionChange('down'));
+    leftBtn.addEventListener('click', () => handleDirectionChange('left'));
+    rightBtn.addEventListener('click', () => handleDirectionChange('right'));
 
     startGame();
 });

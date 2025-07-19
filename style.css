@@ -22,9 +22,30 @@ h1 {
 canvas {
     background-color: #000;
     border: 2px solid #6cff5c;
-    cursor: pointer;
 }
 
 .hidden {
     display: none;
+}
+
+.controls-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-top: 20px;
+    width: 180px;
+}
+
+.controls-container button {
+    background-color: #444;
+    color: #6cff5c;
+    border: 2px solid #6cff5c;
+    font-size: 1.5em;
+    padding: 10px;
+    cursor: pointer;
+    user-select: none; /* Prevents text selection on double-click */
+}
+
+.controls-container button:active {
+    background-color: #555;
 }
