@@ -14,10 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const snakeHeadEmoji = '🐍';
     const defaultBodyEmoji = '🟢';
     const foodEmojis = ['🍎', '🍕', '🍔', '🍟', '🍩', '🍦', '🍭', '🌮', '😂', '😎', '😜', '🥳', '🤯', '🦄', '🚀', '🤖', '🤡'];
+    const obstacleEmoji = '🧱';
 
     let snake = [];
     let food = {};
     let direction = { x: 0, y: 0 };
+    let obstacles = [];
     let score = 0;
     let level = 1;
     let scoreToNextLevel = 10;
@@ -41,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { x: 11, y: 10, char: defaultBodyEmoji },
             { x: 10, y: 10, char: defaultBodyEmoji }
         ];
+        obstacles = [];
         level = 1;
         scoreToNextLevel = 10;
         gameSpeed = initialGameSpeed;
@@ -69,12 +72,43 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.style.boxShadow = '0 0 35px #fff, 0 0 45px #fff inset';
         setTimeout(() => { canvas.style.boxShadow = '0 0 20px #6cff5c, 0 0 30px #6cff5c inset'; }, 250);
 
+        addObstacles();
+
         // Show level up message
         levelUpMessageElement.textContent = `Level ${level}! Speed Increased!`;
         levelUpMessageElement.classList.remove('hidden');
         setTimeout(() => {
             levelUpMessageElement.classList.add('hidden');
         }, 2000); // Message disappears after 2 seconds
+    }
+
+    function addObstacles() {
+        // Add a number of new obstacles equal to the new level number
+        for (let i = 0; i < level; i++) {
+            let obstaclePositionValid = false;
+            while (!obstaclePositionValid) {
+                const newObstacle = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+
+                // Avoid spawning near the snake's head to give the player a chance
+                const head = snake[0];
+                const distanceToHead = Math.abs(newObstacle.x - head.x) + Math.abs(newObstacle.y - head.y);
+                if (distanceToHead < 4) {
+                    continue; // Too close, try a new position
+                }
+
+                const collision = snake.some(part => part.x === newObstacle.x && part.y === newObstacle.y) ||
+                              obstacles.some(obs => obs.x === newObstacle.x && obs.y === newObstacle.y) ||
+                              (food.x === newObstacle.x && food.y === newObstacle.y);
+
+                if (!collision) {
+                    obstacles.push(newObstacle);
+                    obstaclePositionValid = true;
+                }
+            }
+        }
     }
 
     function mainLoop() {
@@ -87,6 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
             clearScreen();
             moveSnake();
             drawFood();
+            drawObstacles();
             drawSnake();
             checkCollision();
             mainLoop();
@@ -136,17 +171,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function generateFood() {
-        food = {
-            x: Math.floor(Math.random() * tileCount),
-            y: Math.floor(Math.random() * tileCount),
-            char: foodEmojis[Math.floor(Math.random() * foodEmojis.length)]
-        };
+        let foodPositionValid = false;
+        while (!foodPositionValid) {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount),
+                char: foodEmojis[Math.floor(Math.random() * foodEmojis.length)]
+            };
 
-        // Ensure food doesn't spawn on the snake
-        snake.forEach(part => {
-            if (part.x === food.x && part.y === food.y) {
-                generateFood();
+            const collisionWithSnake = snake.some(part => part.x === food.x && part.y === food.y);
+            const collisionWithObstacles = obstacles.some(obs => obs.x === food.x && obs.y === food.y);
+
+            if (!collisionWithSnake && !collisionWithObstacles) {
+                foodPositionValid = true;
             }
+        }
+    }
+
+    function drawObstacles() {
+        ctx.font = `${gridSize}px 'Press Start 2P'`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        obstacles.forEach(obs => {
+            const x = obs.x * gridSize + gridSize / 2;
+            const y = obs.y * gridSize + gridSize / 2;
+            ctx.fillText(obstacleEmoji, x, y);
         });
     }
 
@@ -165,12 +214,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // Wall collision
         if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
             isGameOver = true;
+            return;
         }
 
         // Self collision
         for (let i = 1; i < snake.length; i++) {
             if (head.x === snake[i].x && head.y === snake[i].y) {
                 isGameOver = true;
+                return;
+            }
+        }
+
+        // Obstacle collision
+        for (const obs of obstacles) {
+            if (head.x === obs.x && head.y === obs.y) {
+                isGameOver = true;
+                return;
             }
         }
     }
