@@ -8,14 +8,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvasSize = canvas.width;
     const tileCount = canvasSize / gridSize;
 
-    let snake = [{ x: 10, y: 10 }];
+    let snake = [];
     let food = {};
     let direction = { x: 0, y: 0 };
     let score = 0;
     let isGameOver = false;
     let gameSpeed = 120; // milliseconds
+    let gameLoopTimeoutId = null;
+
+    function initialDraw() {
+        clearScreen();
+        drawFood();
+        drawSnake();
+    }
 
     function startGame() {
+        if (gameLoopTimeoutId) {
+            clearTimeout(gameLoopTimeoutId);
+        }
         snake = [{ x: 10, y: 10 }];
         direction = { x: 0, y: 0 };
         score = 0;
@@ -23,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreElement.textContent = score;
         gameOverElement.classList.add('hidden');
         generateFood();
-        mainLoop();
+        initialDraw(); // Draw the initial state, but don't start the loop
     }
 
     function mainLoop() {
@@ -32,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        setTimeout(() => {
+        gameLoopTimeoutId = setTimeout(() => {
             clearScreen();
             moveSnake();
             drawFood();
@@ -104,18 +114,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('keydown', e => {
+        const isGameReadyToStart = direction.x === 0 && direction.y === 0;
+        let newDirection = null;
+
         switch (e.key) {
             case 'ArrowUp':
-                if (direction.y === 0) direction = { x: 0, y: -1 };
+                if (direction.y === 0) newDirection = { x: 0, y: -1 };
                 break;
             case 'ArrowDown':
-                if (direction.y === 0) direction = { x: 0, y: 1 };
+                if (direction.y === 0) newDirection = { x: 0, y: 1 };
                 break;
             case 'ArrowLeft':
-                if (direction.x === 0) direction = { x: -1, y: 0 };
+                if (direction.x === 0) newDirection = { x: -1, y: 0 };
                 break;
             case 'ArrowRight':
-                if (direction.x === 0) direction = { x: 1, y: 0 };
+                if (direction.x === 0) newDirection = { x: 1, y: 0 };
                 break;
             case 'r':
             case 'R':
@@ -123,6 +136,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     startGame();
                 }
                 break;
+        }
+
+        if (newDirection) {
+            direction = newDirection;
+            // If this is the first valid move, kick off the game loop.
+            if (isGameReadyToStart && !isGameOver) {
+                mainLoop();
+            }
         }
     });
 
