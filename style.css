@@ -16,10 +16,13 @@ h1 {
     letter-spacing: 2px;
 }
 
-.score-container {
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    width: 380px;
     font-size: 1.5em;
     margin-bottom: 10px;
-    color: #fff;
+    color: #eee;
 }
 
 canvas {
@@ -38,4 +41,12 @@ canvas {
     font-size: 1.5em;
     color: #ff4136;
     text-shadow: 2px 2px 0px #85144b;
+}
+
+#levelUpMessage {
+    font-size: 1.8em;
+    color: #ffd700; /* Gold color */
+    text-shadow: 2px 2px 0px #b8860b; /* Darker gold */
+    margin-top: -50px; /* Position it slightly higher */
+    padding-bottom: 20px;
 }

@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
     const scoreElement = document.getElementById('score');
     const gameOverElement = document.getElementById('gameOver');
+    const levelElement = document.getElementById('level');
+    const scoreTargetElement = document.getElementById('scoreTarget');
+    const levelUpMessageElement = document.getElementById('levelUpMessage');
 
     const gridSize = 20;
     const canvasSize = canvas.width;
@@ -16,8 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let food = {};
     let direction = { x: 0, y: 0 };
     let score = 0;
+    let level = 1;
+    let scoreToNextLevel = 10;
     let isGameOver = false;
-    let gameSpeed = 120; // milliseconds
+    const initialGameSpeed = 120;
+    let gameSpeed = initialGameSpeed;
     let gameLoopTimeoutId = null;
 
     function initialDraw() {
@@ -35,13 +41,40 @@ document.addEventListener('DOMContentLoaded', () => {
             { x: 11, y: 10, char: defaultBodyEmoji },
             { x: 10, y: 10, char: defaultBodyEmoji }
         ];
+        level = 1;
+        scoreToNextLevel = 10;
+        gameSpeed = initialGameSpeed;
         direction = { x: 0, y: 0 };
         score = 0;
         isGameOver = false;
         scoreElement.textContent = score;
+        levelElement.textContent = level;
         gameOverElement.classList.add('hidden');
+        levelUpMessageElement.classList.add('hidden');
+        scoreTargetElement.textContent = scoreToNextLevel;
         generateFood();
         initialDraw(); // Draw the initial state, but don't start the loop
+    }
+
+    function levelUp() {
+        level++;
+        scoreToNextLevel += 10;
+        levelElement.textContent = level;
+        scoreTargetElement.textContent = scoreToNextLevel;
+
+        // Decrease gameSpeed to increase snake speed, with a max speed (minimum delay of 40ms)
+        gameSpeed = Math.max(40, initialGameSpeed - (level * 10));
+
+        // Flash the border to indicate a level up
+        canvas.style.boxShadow = '0 0 35px #fff, 0 0 45px #fff inset';
+        setTimeout(() => { canvas.style.boxShadow = '0 0 20px #6cff5c, 0 0 30px #6cff5c inset'; }, 250);
+
+        // Show level up message
+        levelUpMessageElement.textContent = `Level ${level}! Speed Increased!`;
+        levelUpMessageElement.classList.remove('hidden');
+        setTimeout(() => {
+            levelUpMessageElement.classList.add('hidden');
+        }, 2000); // Message disappears after 2 seconds
     }
 
     function mainLoop() {
@@ -81,6 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // The head that just ate the food now holds the food's character.
             // This character will be used for the *next* body segment created.
             newHead.char = food.char;
+            if (score >= scoreToNextLevel) {
+                levelUp();
+            }
             generateFood();
         } else {
             snake.pop();
