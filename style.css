@@ -1,7 +1,7 @@
 body {
-    background-color: #333;
+    background: #1a1a1a linear-gradient(180deg, #333 0%, #1a1a1a 100%);
     color: #eee;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Press Start 2P', cursive;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -12,40 +12,30 @@ body {
 
 h1 {
     color: #6cff5c;
+    text-shadow: 3px 3px 0px #3a8a31;
+    letter-spacing: 2px;
 }
 
 .score-container {
     font-size: 1.5em;
     margin-bottom: 10px;
+    color: #fff;
 }
 
 canvas {
     background-color: #000;
     border: 2px solid #6cff5c;
+    border-radius: 8px;
+    box-shadow: 0 0 20px #6cff5c, 0 0 30px #6cff5c inset;
+    cursor: pointer;
 }
 
 .hidden {
     display: none;
 }
 
-.controls-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 5px;
-    margin-top: 20px;
-    width: 180px;
-}
-
-.controls-container button {
-    background-color: #444;
-    color: #6cff5c;
-    border: 2px solid #6cff5c;
+#gameOver {
     font-size: 1.5em;
-    padding: 10px;
-    cursor: pointer;
-    user-select: none; /* Prevents text selection on double-click */
-}
-
-.controls-container button:active {
-    background-color: #555;
+    color: #ff4136;
+    text-shadow: 2px 2px 0px #85144b;
 }

@@ -4,14 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreElement = document.getElementById('score');
     const gameOverElement = document.getElementById('gameOver');
 
-    const upBtn = document.getElementById('upBtn');
-    const downBtn = document.getElementById('downBtn');
-    const leftBtn = document.getElementById('leftBtn');
-    const rightBtn = document.getElementById('rightBtn');
-
     const gridSize = 20;
     const canvasSize = canvas.width;
     const tileCount = canvasSize / gridSize;
+
+    const snakeHeadEmoji = '🐍';
+    const defaultBodyEmoji = '🟢';
+    const foodEmojis = ['🍎', '🍕', '🍔', '🍟', '🍩', '🍦', '🍭', '🌮', '😂', '😎', '😜', '🥳', '🤯', '🦄', '🚀', '🤖', '🤡'];
 
     let snake = [];
     let food = {};
@@ -32,9 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(gameLoopTimeoutId);
         }
         snake = [
-            { x: 12, y: 10 }, // Head
-            { x: 11, y: 10 },
-            { x: 10, y: 10 }  // Tail
+            { x: 12, y: 10, char: defaultBodyEmoji }, // Head's underlying char
+            { x: 11, y: 10, char: defaultBodyEmoji },
+            { x: 10, y: 10, char: defaultBodyEmoji }
         ];
         direction = { x: 0, y: 0 };
         score = 0;
@@ -67,13 +66,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function moveSnake() {
-        const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-        snake.unshift(head);
+        const oldHead = snake[0];
+        const newHead = {
+            x: oldHead.x + direction.x,
+            y: oldHead.y + direction.y,
+            char: oldHead.char // The new head carries the character of the segment it's replacing.
+        };
+        snake.unshift(newHead);
 
         // Check if snake ate food
-        if (head.x === food.x && head.y === food.y) {
+        if (newHead.x === food.x && newHead.y === food.y) {
             score++;
             scoreElement.textContent = score;
+            // The head that just ate the food now holds the food's character.
+            // This character will be used for the *next* body segment created.
+            newHead.char = food.char;
             generateFood();
         } else {
             snake.pop();
@@ -81,16 +88,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawSnake() {
-        ctx.fillStyle = '#6cff5c'; // snake color
-        snake.forEach(part => {
-            ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+        ctx.font = `${gridSize * 0.9}px 'Press Start 2P'`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        snake.forEach((part, index) => {
+            const characterToDraw = (index === 0) ? snakeHeadEmoji : part.char;
+            const x = part.x * gridSize + gridSize / 2;
+            const y = part.y * gridSize + gridSize / 2;
+            ctx.fillText(characterToDraw, x, y);
         });
     }
 
     function generateFood() {
         food = {
             x: Math.floor(Math.random() * tileCount),
-            y: Math.floor(Math.random() * tileCount)
+            y: Math.floor(Math.random() * tileCount),
+            char: foodEmojis[Math.floor(Math.random() * foodEmojis.length)]
         };
 
         // Ensure food doesn't spawn on the snake
@@ -102,8 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function drawFood() {
-        ctx.fillStyle = '#ff4136'; // food color
-        ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+        ctx.font = `${gridSize}px 'Press Start 2P'`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const x = food.x * gridSize + gridSize / 2;
+        const y = food.y * gridSize + gridSize / 2;
+        ctx.fillText(food.char, x, y);
     }
 
     function checkCollision() {
@@ -150,6 +167,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function handleCanvasTap(event) {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        const dx = x - centerX;
+        const dy = y - centerY;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+            // Horizontal tap is stronger
+            handleDirectionChange(dx > 0 ? 'right' : 'left');
+        } else {
+            // Vertical tap is stronger
+            handleDirectionChange(dy > 0 ? 'down' : 'up');
+        }
+    }
+
     document.addEventListener('keydown', e => {
         if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
             handleDirectionChange(e.key);
@@ -158,10 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    upBtn.addEventListener('click', () => handleDirectionChange('up'));
-    downBtn.addEventListener('click', () => handleDirectionChange('down'));
-    leftBtn.addEventListener('click', () => handleDirectionChange('left'));
-    rightBtn.addEventListener('click', () => handleDirectionChange('right'));
+    canvas.addEventListener('click', handleCanvasTap);
 
     startGame();
 });
